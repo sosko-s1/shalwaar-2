@@ -29,7 +29,7 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 PTERODACTYL_URL = os.getenv("PTERODACTYL_URL")
 PTERODACTYL_API_KEY = os.getenv("PTERODACTYL_API_KEY")
 
-# Multiple Servers Mapping (Yahan tum apne alag-alag servers ke naam aur unki IDs define kar sakoge)
+# Multiple Servers Mapping
 SERVERS = {
     "cs2": os.getenv("CS2_SERVER_ID"),
     "minecraft": os.getenv("MC_SERVER_ID"),
@@ -40,11 +40,32 @@ SERVERS = {
 async def on_ready():
     print(f"Lo g! Bot online ho gaya hai: {bot.user}")
 
+# 3. AI Conversational & Mazak-Masti Listener
+@bot.event
+async def on_message(message):
+    # Bot apne hi message ka jawab de kar loop mein na phans jaye
+    if message.author == bot.user:
+        return
+
+    content = message.content.lower()
+
+    # Desi style banter aur casual chat logic
+    if "kya hal hai" in content or "kesa hai" in content:
+        await message.channel.send("Sab set hai boss! Tum batao, server kab aa raha hai jisay humne control karna hai? 😎")
+    elif "mazak" in content or "joke" in content:
+        await message.channel.send("Bhai mazak yeh hai ke hum bina VPS ke poora DevOps empire khara kar rahe hain! 😆")
+    elif "bot" in content and ("kaam" in content or "kya kr skte ho" in content):
+        await message.channel.send("Main tera personal DevOps agent hoon bhai! Abhi standby par hoon, VPS aate hi Pterodactyl aur servers ki aisi ki taisi ek kar denge! 🚀")
+
+    # Yeh line lazmi hai warna commands (!start, !status waghera) kaam nahi karengi
+    await bot.process_commands(message)
+
+# 4. Server Management Commands (Multiple Servers Supported)
 @bot.command(name="status")
 async def server_status(ctx, server_name: str = None):
     """Kisi bhi server ka status check karne ke liye: !status cs2"""
     if not all([PTERODACTYL_URL, PTERODACTYL_API_KEY]):
-        await ctx.send("⚠️ **Pterodactyl panel abhi connect nahi hai!**")
+        await ctx.send("⚠️ **Pterodactyl panel abhi connect nahi hai!** Par tu fikar na kar, main baaki baatein sun raha hoon.")
         return
     
     if not server_name or server_name.lower() not in SERVERS:
@@ -59,7 +80,7 @@ async def server_status(ctx, server_name: str = None):
 async def server_start(ctx, server_name: str = None):
     """Server start karne ke liye: !start cs2"""
     if not all([PTERODACTYL_URL, PTERODACTYL_API_KEY]):
-        await ctx.send("🚧 **System Notice:** VPS aur Pterodactyl configure hone ka intezar hai.")
+        await ctx.send("🚧 **System Notice:** VPS aur Pterodactyl aane ka intezar hai. Tab tak chill maar!")
         return
     
     if not server_name or server_name.lower() not in SERVERS:
@@ -74,7 +95,7 @@ async def server_start(ctx, server_name: str = None):
 async def server_stop(ctx, server_name: str = None):
     """Server stop karne ke liye: !stop cs2"""
     if not all([PTERODACTYL_URL, PTERODACTYL_API_KEY]):
-        await ctx.send("🛑 Panel active nahi hai.")
+        await ctx.send("🛑 Panel active nahi hai, warna abhi chala kar dikhata.")
         return
     
     if not server_name or server_name.lower() not in SERVERS:
