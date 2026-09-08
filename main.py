@@ -4,7 +4,7 @@ from http.server import HTTPServer, BaseHTTPRequestHandler
 import discord
 from discord.ext import commands
 
-# 1. Dummy Web Server taake Railway ka health check pass rahe aur container band na ho
+# 1. Dummy Web Server taake Railway ka health check pass rahe
 class SimpleHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         self.send_response(200)
@@ -28,39 +28,62 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 # Pterodactyl Configuration Variables (Future Ready)
 PTERODACTYL_URL = os.getenv("PTERODACTYL_URL")
 PTERODACTYL_API_KEY = os.getenv("PTERODACTYL_API_KEY")
-SERVER_ID = os.getenv("SERVER_ID")
+
+# Multiple Servers Mapping (Yahan tum apne alag-alag servers ke naam aur unki IDs define kar sakoge)
+SERVERS = {
+    "cs2": os.getenv("CS2_SERVER_ID"),
+    "minecraft": os.getenv("MC_SERVER_ID"),
+    "rust": os.getenv("RUST_SERVER_ID")
+}
 
 @bot.event
 async def on_ready():
     print(f"Lo g! Bot online ho gaya hai: {bot.user}")
 
 @bot.command(name="status")
-async def server_status(ctx):
-    """Check karega ke server ka kya haal hai"""
-    if not all([PTERODACTYL_URL, PTERODACTYL_API_KEY, SERVER_ID]):
-        await ctx.send("⚠️ **Pterodactyl panel abhi connect nahi hai!** Jab VPS aa jaye ga aur variables set ho jayenge, tab yeh live status dikhane lagega.")
+async def server_status(ctx, server_name: str = None):
+    """Kisi bhi server ka status check karne ke liye: !status cs2"""
+    if not all([PTERODACTYL_URL, PTERODACTYL_API_KEY]):
+        await ctx.send("⚠️ **Pterodactyl panel abhi connect nahi hai!**")
         return
     
-    # Jab VPS aa jayega, yahan Pterodactyl API call aayegi
-    await ctx.send("🔍 Pterodactyl API se connection establish ho raha hai...")
+    if not server_name or server_name.lower() not in SERVERS:
+        available = ", ".join(SERVERS.keys())
+        await ctx.send(f"❌ Sahi server ka naam do. Available servers: `{available}` (Misal: `!status cs2`)")
+        return
+
+    server_id = SERVERS[server_name.lower()]
+    await ctx.send(f"🔍 Checking status for **{server_name.upper()}** (ID: {server_id})...")
 
 @bot.command(name="start")
-async def server_start(ctx):
-    """CS2 server start karne ki command"""
-    if not all([PTERODACTYL_URL, PTERODACTYL_API_KEY, SERVER_ID]):
-        await ctx.send("🚧 **System Notice:** VPS aur Pterodactyl configure hone ka intezar hai. Tab tak yeh command offline mode par hai!")
+async def server_start(ctx, server_name: str = None):
+    """Server start karne ke liye: !start cs2"""
+    if not all([PTERODACTYL_URL, PTERODACTYL_API_KEY]):
+        await ctx.send("🚧 **System Notice:** VPS aur Pterodactyl configure hone ka intezar hai.")
         return
     
-    await ctx.send("🚀 Server start kiya ja raha hai...")
+    if not server_name or server_name.lower() not in SERVERS:
+        available = ", ".join(SERVERS.keys())
+        await ctx.send(f"❌ Sahi server ka naam do. Available servers: `{available}` (Misal: `!start cs2`)")
+        return
+
+    server_id = SERVERS[server_name.lower()]
+    await ctx.send(f"🚀 Starting **{server_name.upper()}**...")
 
 @bot.command(name="stop")
-async def server_stop(ctx):
-    """CS2 server stop karne ki command"""
-    if not all([PTERODACTYL_URL, PTERODACTYL_API_KEY, SERVER_ID]):
-        await ctx.send("🛑 Panel active nahi hai, isliye server stop nahi ho sakta.")
+async def server_stop(ctx, server_name: str = None):
+    """Server stop karne ke liye: !stop cs2"""
+    if not all([PTERODACTYL_URL, PTERODACTYL_API_KEY]):
+        await ctx.send("🛑 Panel active nahi hai.")
         return
     
-    await ctx.send("🛑 Server safely stop ho raha hai...")
+    if not server_name or server_name.lower() not in SERVERS:
+        available = ", ".join(SERVERS.keys())
+        await ctx.send(f"❌ Sahi server ka naam do. Available servers: `{available}` (Misal: `!stop cs2`)")
+        return
+
+    server_id = SERVERS[server_name.lower()]
+    await ctx.send(f"🛑 Stopping **{server_name.upper()}**...")
 
 # Bot ko run kar do
 bot.run(os.getenv("DISCORD_TOKEN"))
