@@ -21,11 +21,11 @@ server_thread = threading.Thread(target=run_server)
 server_thread.daemon = True
 server_thread.start()
 
-# 2. Google Gemini AI Setup
+# 2. Google Gemini AI Setup (AQ. keys support ke sath)
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 if GEMINI_API_KEY:
+    # Explicitly key pass kar rahe hain taake AQ. auth token properly uth jaye
     genai.configure(api_key=GEMINI_API_KEY)
-    # Gemini model initialize kar rahe hain
     ai_model = genai.GenerativeModel(
         model_name="gemini-1.5-flash",
         system_instruction="You are a smart, funny, desi, and tech-savvy DevOps & gaming AI assistant on Discord. You chat with the user in a mix of Roman Urdu and English, keep the vibe chill and friendly, and help them with servers, coding, and general tech talk."
@@ -38,7 +38,7 @@ intents = discord.Intents.default()
 intents.message_content = True
 bot = commands.Bot(command_prefix="!", intents=intents)
 
-# Pterodactyl Configuration Variables (Future Ready)
+# Pterodactyl Configuration Variables
 PTERODACTYL_URL = os.getenv("PTERODACTYL_URL")
 PTERODACTYL_API_KEY = os.getenv("PTERODACTYL_API_KEY")
 
@@ -58,22 +58,23 @@ async def on_message(message):
     if message.author == bot.user:
         return
 
-    # Agar message command hai (! se shuru hota hai) toh usay commands ke liye pass kar do
+    # Agar message command hai (! se shuru hota hai) toh commands ke liye pass kar do
     if message.content.startswith("!"):
         await bot.process_commands(message)
         return
 
-    # Agar aam baat hai, toh seedha Gemini AI ko bhej do!
+    # Agar aam baat hai, toh Gemini AI ko bhej do
     if ai_model:
         try:
-            # Typing indicator show karega taake lage ke AI soch raha hai
             async with message.channel.typing():
                 response = ai_model.generate_content(message.content)
                 await message.channel.send(response.text)
         except Exception as e:
-            await message.channel.send("Bhai, AI brain thori der ke liye hang ho gaya hai, dubara try kar! 😅")
+            # Agar koi error aaye toh detail print ho jayegi taake pata chalay
+            print(f"Gemini Error: {e}")
+            await message.channel.send(f"Bhai, AI error agya hai: `{e}` 😅")
     else:
-        await message.channel.send("⚠️ Railway variables mein `GEMINI_API_KEY` set karna bhool gaye ho boss!")
+        await message.channel.send("⚠️ Railway variables mein `GEMINI_API_KEY` set nahi hai!")
 
     await bot.process_commands(message)
 
@@ -81,7 +82,7 @@ async def on_message(message):
 @bot.command(name="status")
 async def server_status(ctx, server_name: str = None):
     if not all([PTERODACTYL_URL, PTERODACTYL_API_KEY]):
-        await ctx.send("⚠️ **Pterodactyl panel abhi connect nahi hai!** Par baaki baatein AI ke sath kar sakta hai.")
+        await ctx.send("⚠️ **Pterodactyl panel abhi connect nahi hai!**")
         return
     
     if not server_name or server_name.lower() not in SERVERS:
@@ -96,5 +97,4 @@ async def server_status(ctx, server_name: str = None):
 async def ping(ctx):
     await ctx.send("Pong! AI agent bilkul high speed par chal raha hai. ⚡")
 
-# Bot run kar do
 bot.run(os.getenv("DISCORD_TOKEN"))
