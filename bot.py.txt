@@ -1,0 +1,25 @@
+import os
+import discord
+from discord.ext import commands
+
+# Intents set kar rahe hain
+intents = discord.Intents.default()
+intents.message_content = True
+
+bot = commands.Bot(command_prefix="!", intents=intents)
+
+@bot.event
+async def on_ready():
+    print(f'Lo g! Bot online ho gaya hai: {bot.user}')
+
+@bot.command(name='ping')
+async def ping(ctx):
+    """Test command"""
+    await ctx.send("Pong! Bot बिल्कुल theek kaam kar raha hai.")
+
+# Render ke environment variable se token uthayega
+TOKEN = os.getenv('DISCORD_TOKEN')
+if TOKEN:
+    bot.run(TOKEN)
+else:
+    print("Error: DISCORD_TOKEN nahi mila!")
