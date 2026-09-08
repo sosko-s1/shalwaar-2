@@ -21,10 +21,18 @@ server_thread = threading.Thread(target=run_server)
 server_thread.daemon = True
 server_thread.start()
 
-# 2. Google GenAI Setup
+# 2. Google GenAI Setup & Model Discovery
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 if GEMINI_API_KEY:
     ai_client = genai.Client(api_key=GEMINI_API_KEY)
+    
+    # Check karne ke liye ke is AQ key par kon se models available hain
+    try:
+        print("🔍 Checking available models for this AQ key...")
+        for m in ai_client.models.list():
+            print(f"Supported Model: {m.name}")
+    except Exception as e:
+        print(f"Model list error: {e}")
 else:
     ai_client = None
 
@@ -59,9 +67,9 @@ async def on_message(message):
     if ai_client:
         try:
             async with message.channel.typing():
-                # Model ko gemini-1.0-pro kar diya hai taake AQ. key ke sath conflict na ho
+                # Yahan hum 'gemini-2.5-flash' ya jo logs mein show ho usay try kar rahe hain
                 response = ai_client.models.generate_content(
-                    model='gemini-1.0-pro',
+                    model='gemini-2.5-flash',
                     contents=message.content,
                 )
                 await message.channel.send(response.text)
