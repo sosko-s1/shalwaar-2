@@ -59,9 +59,9 @@ async def on_message(message):
     if ai_client:
         try:
             async with message.channel.typing():
-                # Logs se confirm hone wala model name use kar rahe hain
+                # Google ke kehne par model ko gemini-3.6-flash kar diya hai
                 response = ai_client.models.generate_content(
-                    model='gemini-2.5-flash',
+                    model='gemini-3.6-flash',
                     contents=message.content,
                 )
                 await message.channel.send(response.text)
