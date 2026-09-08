@@ -24,7 +24,6 @@ server_thread.start()
 # 2. Google GenAI Setup
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 if GEMINI_API_KEY:
-    # AQ. key ke sath client initialize kar rahe hain
     ai_client = genai.Client(api_key=GEMINI_API_KEY)
 else:
     ai_client = None
@@ -60,9 +59,9 @@ async def on_message(message):
     if ai_client:
         try:
             async with message.channel.typing():
-                # Model name ko update karke check kar rahe hain
+                # Model ko gemini-1.0-pro kar diya hai taake AQ. key ke sath conflict na ho
                 response = ai_client.models.generate_content(
-                    model='gemini-1.5-flash',
+                    model='gemini-1.0-pro',
                     contents=message.content,
                 )
                 await message.channel.send(response.text)
