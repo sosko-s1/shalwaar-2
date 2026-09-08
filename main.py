@@ -3,7 +3,7 @@ import threading
 from http.server import HTTPServer, BaseHTTPRequestHandler
 import discord
 from discord.ext import commands
-import google.generativeai as genai
+from google import genai
 
 # 1. Dummy Web Server taake Railway ka health check pass rahe
 class SimpleHandler(BaseHTTPRequestHandler):
@@ -21,17 +21,12 @@ server_thread = threading.Thread(target=run_server)
 server_thread.daemon = True
 server_thread.start()
 
-# 2. Google Gemini AI Setup (AQ. keys support ke sath)
+# 2. Google GenAI Setup (New SDK with AQ. key support)
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 if GEMINI_API_KEY:
-    # Explicitly key pass kar rahe hain taake AQ. auth token properly uth jaye
-    genai.configure(api_key=GEMINI_API_KEY)
-    ai_model = genai.GenerativeModel(
-        model_name="gemini-1.5-flash",
-        system_instruction="You are a smart, funny, desi, and tech-savvy DevOps & gaming AI assistant on Discord. You chat with the user in a mix of Roman Urdu and English, keep the vibe chill and friendly, and help them with servers, coding, and general tech talk."
-    )
+    ai_client = genai.Client(api_key=GEMINI_API_KEY)
 else:
-    ai_model = None
+    ai_client = None
 
 # 3. Discord Bot Setup
 intents = discord.Intents.default()
@@ -64,13 +59,16 @@ async def on_message(message):
         return
 
     # Agar aam baat hai, toh Gemini AI ko bhej do
-    if ai_model:
+    if ai_client:
         try:
             async with message.channel.typing():
-                response = ai_model.generate_content(message.content)
+                # Latest SDK ka standard prompt call
+                response = ai_client.models.generate_content(
+                    model='gemini-1.5-flash',
+                    contents=message.content,
+                )
                 await message.channel.send(response.text)
         except Exception as e:
-            # Agar koi error aaye toh detail print ho jayegi taake pata chalay
             print(f"Gemini Error: {e}")
             await message.channel.send(f"Bhai, AI error agya hai: `{e}` 😅")
     else:
