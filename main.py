@@ -21,9 +21,10 @@ server_thread = threading.Thread(target=run_server)
 server_thread.daemon = True
 server_thread.start()
 
-# 2. Google GenAI Setup (New SDK with AQ. key support)
+# 2. Google GenAI Setup
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 if GEMINI_API_KEY:
+    # AQ. key ke sath client initialize kar rahe hain
     ai_client = genai.Client(api_key=GEMINI_API_KEY)
 else:
     ai_client = None
@@ -33,7 +34,6 @@ intents = discord.Intents.default()
 intents.message_content = True
 bot = commands.Bot(command_prefix="!", intents=intents)
 
-# Pterodactyl Configuration Variables
 PTERODACTYL_URL = os.getenv("PTERODACTYL_URL")
 PTERODACTYL_API_KEY = os.getenv("PTERODACTYL_API_KEY")
 
@@ -53,16 +53,14 @@ async def on_message(message):
     if message.author == bot.user:
         return
 
-    # Agar message command hai (! se shuru hota hai) toh commands ke liye pass kar do
     if message.content.startswith("!"):
         await bot.process_commands(message)
         return
 
-    # Agar aam baat hai, toh Gemini AI ko bhej do
     if ai_client:
         try:
             async with message.channel.typing():
-                # Latest SDK ka standard prompt call
+                # Model name ko update karke check kar rahe hain
                 response = ai_client.models.generate_content(
                     model='gemini-1.5-flash',
                     contents=message.content,
